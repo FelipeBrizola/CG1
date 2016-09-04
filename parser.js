@@ -1,0 +1,1 @@
+/* Transforma .txt em arquivo json estruturado  */
