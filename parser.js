@@ -22,9 +22,9 @@ exports.txtToJson = function(filePath, cb) {
 
             pointsArray.forEach(function (point) {
                 people.points.push({
-                    'x': point.split(',')[0],
-                    'y': point.split(',')[1],
-                    't': point.split(',')[2]
+                    'x': parseInt(point.split(',')[0]),
+                    'y': parseInt(point.split(',')[1]),
+                    't': parseInt(point.split(',')[2])
                 });
             });
 
