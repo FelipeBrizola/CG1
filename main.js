@@ -2,26 +2,79 @@
 
 const parser =  require('./parser'),
       _      =  require('lodash'),
-      pathFiles = [ './AE-01/Paths_D.txt', './AE-02/Paths_D.txt', './AT-01/Paths_D.txt', './AT-02/Paths_D.txt',
-                    './AT-03/Paths_D.txt', './BR-01/Paths_D.txt', './BR-02/Paths_D.txt', './BR-03/Paths_D.txt',
-                    './BR-04/Paths_D.txt', './BR-05/Paths_D.txt', './BR-06/Paths_D.txt', './BR-07/Paths_D.txt',
-                    './BR-08/Paths_D.txt', './CN-01/Paths_D.txt', './CN-02/Paths_D.txt', './CN-03/Paths_D.txt',
-                    './DE-01/Paths_D.txt', './DE-02/Paths_D.txt', './ES-01/Paths_D.txt', './FR-01/Paths_D.txt',
-                    './FR-02/Paths_D.txt', './JP-01/Paths_D.txt', './JP-02/Paths_D.txt', './PT-01/Paths_D.txt',
-                    './TR-01/Paths_D.txt', './UK-01/Paths_D.txt' ];
+      countryFiles = [
+          {
+              'coutry': 'AE',
+              'files': ['./AE-01/Paths_D.txt', './AE-02/Paths_D.txt']
+          },
+          {
+              'coutry': 'AT',
+              'files': ['./AT-01/Paths_D.txt', './AT-02/Paths_D.txt', './AT-03/Paths_D.txt']
+          },
+          {
+              'coutry': 'BR',
+              'files': [ './BR-01/Paths_D.txt', './BR-02/Paths_D.txt', './BR-03/Paths_D.txt',
+                        './BR-04/Paths_D.txt', './BR-05/Paths_D.txt', './BR-06/Paths_D.txt',
+                        './BR-07/Paths_D.txt', './BR-08/Paths_D.txt']
+          },
+          {
+              'coutry': 'CN',
+              'files': ['./CN-01/Paths_D.txt', './CN-02/Paths_D.txt', './CN-03/Paths_D.txt']
+          },
+          {
+              'coutry': 'DE',
+              'files': ['./DE-01/Paths_D.txt', './DE-02/Paths_D.txt']
+          },
+          {
+              'coutry': 'ES',
+              'files': ['./ES-01/Paths_D.txt']
+          },
+          {
+              'coutry': 'FR',
+              'files': ['./FR-01/Paths_D.txt', './FR-02/Paths_D.txt']
+          },
+          {
+              'coutry': 'JP',
+              'files': ['./JP-01/Paths_D.txt', './JP-02/Paths_D.txt']
+          },
+          {
+              'coutry': 'PT',
+              'files': ['./PT-01/Paths_D.txt']
+          },
+          {
+              'coutry': 'TR',
+              'files': ['./TR-01/Paths_D.txt']
+          },
+          {
+              'coutry': 'UK',
+              'files': ['./UK-01/Paths_D.txt']
+          } 
+    ];
 
 function analizer() {
-    let data = [];
+    let averageHyperactives, averageSuperStars, averageSpeeds;
 
-    pathFiles.forEach(file => {
-        parser.txtToJson(file, (json, conversionFactor, filePath) => {
-            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> DISTANCIA PERCORRIDA PELAS PESSOAS -----------------');
-            console.log(hyperactive(json, conversionFactor, filePath));
-            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> TEMPO DE APARECIMENTO DAS PESSOAS -----------------');
-            console.log(superStar(json));
-            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> VELOCIDADE MÉDIA DAS PESSOAS -----------------');
-            console.log(averageSpeed(json, conversionFactor, filePath));
+    countryFiles.forEach(cf => {
+        cf.files.forEach(file => {
+            parser.txtToJson(file, (json, conversionFactor, filePath) => {
+
+                averageHyperactives = hyperactives(json, conversionFactor, filePath);
+                console.log('------- ' + 'ARQUIVO --> ' + filePath + ' -----> DISTANCIA PERCORRIDA PELAS PESSOAS EM METROS -------');
+                console.log('------- MÉDIA DO PAIS --> ', _.sumBy(averageHyperactives, 'distance') / averageHyperactives.length);
+                console.log('\n');
+
+                averageSuperStars = superStars(json, conversionFactor, filePath);
+                console.log('------- ' + 'ARQUIVO --> ' + filePath + ' -----> TEMPO DE APARECIMENTO DAS PESSOAS EM SEGUNDOS -------');
+                console.log('------- MÉDIA DO PAIS --> ', _.sumBy(averageSuperStars, 'timeInVideo') / averageSuperStars.length);
+                console.log('\n');
+
+                averageSpeeds = averageSpeed(json, conversionFactor, filePath);
+                console.log('------- ' + 'ARQUIVO --> ' + filePath + ' -----> VELOCIDADE MÉDIA DAS PESSOAS EM METROS POR SEGUNDO -------');
+                console.log('------- MÉDIA DO PAIS --> ', _.sumBy(averageSpeeds, 'averageSpeed') / averageSpeeds.length);
+                console.log('\n');
+            });
         });
+
     });
 
 };
@@ -56,7 +109,7 @@ function hypotenuse(catheti1, catheti2) {
 };
 
 /* Pontos com maior movimentacao */
-function hyperactive(peoples, conversionFactor) {
+function hyperactives(peoples, conversionFactor) {
     let hyperactives = [],
         i,
         distance = 0;
@@ -72,14 +125,14 @@ function hyperactive(peoples, conversionFactor) {
     return hyperactives;
 };
 
-/* Pontos que aparecem por mais tempo */
-function superStar(peoples) {
+/* Pontos que aparecem por mais tempo. Unidade de medida: segundos */
+function superStars(peoples) {
     let superStars = [];
 
     peoples = _.sortBy(peoples, 'people');
 
     peoples.forEach((people, index) => {
-        superStars.push({'people': index, 'timeInVideo': people.people + ' segundos'})
+        superStars.push({'people': index, 'timeInVideo': people.people})
     });
     return superStars;
 };
@@ -96,7 +149,7 @@ function averageSpeed(peoples, conversionFactor) {
 
         averageSpeed = distance / people.people;
 
-        runners.push({'people': index, 'averageSpeed': averageSpeed + ' m/s'});
+        runners.push({'people': index, 'averageSpeed': averageSpeed});
     });
 
     return runners;
