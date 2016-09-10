@@ -1,6 +1,3 @@
-//histograma -->  + - movimentados; + - aparece
-// 1.2 metros = friendzone 
-// pontos por tempo: populacao
 'use strict'
 
 const parser =  require('./parser'),
@@ -30,7 +27,7 @@ function analizer() {
 };
 
 
-/* Funcao auxiliar */
+/* Funcao auxiliar para calcular distancia percorrida */
 function moves(points) {
     let moves = 0,
         i;
@@ -97,9 +94,9 @@ function averageSpeed(peoples, conversionFactor) {
         distance = moves(people.points);
         distance =  distance / conversionFactor;
 
-        averageSpeed = distance / people.points.length;
+        averageSpeed = distance / people.people;
 
-        runners.push({'people': index, 'averageSpeed': averageSpeed});
+        runners.push({'people': index, 'averageSpeed': averageSpeed + ' m/s'});
     });
 
     return runners;
