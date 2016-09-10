@@ -5,78 +5,104 @@
 
 const parser =  require('./parser'),
       _      =  require('lodash'),
-      pathFiles = ['./BR-01/Paths_D.txt', './BR-06/Paths_D.txt', './AE-01/Paths_D.txt', './DE-02/Paths_D.txt'];
+      pathFiles = [ './AE-01/Paths_D.txt', './AE-02/Paths_D.txt', './AT-01/Paths_D.txt', './AT-02/Paths_D.txt',
+                    './AT-03/Paths_D.txt', './BR-01/Paths_D.txt', './BR-02/Paths_D.txt', './BR-03/Paths_D.txt',
+                    './BR-04/Paths_D.txt', './BR-05/Paths_D.txt', './BR-06/Paths_D.txt', './BR-07/Paths_D.txt',
+                    './BR-08/Paths_D.txt', './CN-01/Paths_D.txt', './CN-02/Paths_D.txt', './CN-03/Paths_D.txt',
+                    './DE-01/Paths_D.txt', './DE-02/Paths_D.txt', './ES-01/Paths_D.txt', './FR-01/Paths_D.txt',
+                    './FR-02/Paths_D.txt', './JP-01/Paths_D.txt', './JP-02/Paths_D.txt', './PT-01/Paths_D.txt',
+                    './TR-01/Paths_D.txt', './UK-01/Paths_D.txt' ];
 
 function analizer() {
     let data = [];
 
     pathFiles.forEach(file => {
-        parser.txtToJson(file, (json) => {
-            hyperactive(json);
-            console.log('-----------------');
-            superStar(json);
-            console.log('-----------------');
-            populationByTime(json);
+        parser.txtToJson(file, (json, conversionFactor, filePath) => {
+            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> DISTANCIA PERCORRIDA PELAS PESSOAS -----------------');
+            console.log(hyperactive(json, conversionFactor, filePath));
+            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> TEMPO DE APARECIMENTO DAS PESSOAS -----------------');
+            console.log(superStar(json));
+            console.log('----------------- ' + 'ARQUIVO -->' + filePath + ' -----> VELOCIDADE MÉDIA DAS PESSOAS -----------------');
+            console.log(averageSpeed(json, conversionFactor, filePath));
         });
     });
 
 };
 
+
+/* Funcao auxiliar */
+function moves(points) {
+    let moves = 0,
+        i;
+
+    for (i = 0; i < points.length - 1; i += 1) {
+
+        // ambos valores mudam? calcular hipotenusa
+        if (points && points[i].x !== points[i + 1].x && points[i].y !== points[i + 1].y)
+            moves += hypotenuse(Math.abs(points[i].x - points[i + 1].x), Math.abs(points[i].y - points[i + 1].y));
+
+        // só y muda. subtracao simples
+        if (points && points[i].x === points[i + 1].x && points[i].y !== points[i + 1].y)
+            moves += Math.abs(points[i].y - points[i + 1].y);
+
+        // só x muda. subtracao simples
+        if (points && points[i].x !== points[i + 1].x && points[i].y === points[i + 1].y)
+            moves += Math.abs(points[i].x - points[i + 1].x);
+        
+    }
+    return moves;
+};
+
+/* Funcao auxiliar para calculo de hipotenusa*/
+function hypotenuse(catheti1, catheti2) {
+    return Math.sqrt(Math.pow(catheti1, 2) + Math.pow(catheti2, 2));
+};
+
 /* Pontos com maior movimentacao */
-function hyperactive(peoples) {
+function hyperactive(peoples, conversionFactor) {
     let hyperactives = [],
         i,
-        moves = 0;
+        distance = 0;
 
-    peoples.forEach(people => {
-        for (i = 0; i < people.points.length - 1; i += 1) {
+    peoples.forEach((people, index) => {
+        
+        distance = moves(people.points);
+        distance = distance / conversionFactor;
 
-            // ambos valores mudam? calcular hipotenusa
-            if (people.points && people.points[i].x !== people.points[i + 1].x && people.points[i].y !== people.points[i + 1].y)
-                moves += hypotenuse(Math.abs(people.points[i].x - people.points[i + 1].x), Math.abs(people.points[i].y - people.points[i + 1].y));
-
-            // só y muda. subtracao simples
-            if (people.points && people.points[i].x === people.points[i + 1].x && people.points[i].y !== people.points[i + 1].y)
-                moves += Math.abs(people.points[i].y - people.points[i + 1].y);
-
-            // só x muda. subtracao simples
-            if (people.points && people.points[i].x !== people.points[i + 1].x && people.points[i].y === people.points[i + 1].y)
-                moves += Math.abs(people.points[i].x - people.points[i + 1].x);
-            
-        }
-        hyperactives.push({'people': people.people, 'moves': moves});
-        moves = 0;
+        hyperactives.push({'people': index, 'distance': distance});
+        distance = 0;
     });
-    return hyperactives
+    return hyperactives;
 };
 
 /* Pontos que aparecem por mais tempo */
 function superStar(peoples) {
     let superStars = [];
 
-    superStars = _.sortBy(peoples, 'people');
+    peoples = _.sortBy(peoples, 'people');
 
-    _.forEach(superStars, function (sp) {
-        console.log(sp.people);
+    peoples.forEach((people, index) => {
+        superStars.push({'people': index, 'timeInVideo': people.people + ' segundos'})
     });
+    return superStars;
 };
 
-function populationByTime(peoples) {
-    let popByTime = [];
+/* velocidade media em metros por segundo */
+function averageSpeed(peoples, conversionFactor) {
+    let distance = 0,
+        averageSpeed,
+        runners = [];
 
-    // agrupar por inicios iguais
-    peoples.forEach(people => {
-        popByTime.push({
-            'point': people.people,
-            'begin': people.points[0].t,
-            'end'  : people.points[0].t + people.points.length - 1
-        });
+    peoples.forEach((people, index) => {
+        distance = moves(people.points);
+        distance =  distance / conversionFactor;
+
+        averageSpeed = distance / people.points.length;
+
+        runners.push({'people': index, 'averageSpeed': averageSpeed});
     });
-    return popByTime;
-};
 
-function hypotenuse(catheti1, catheti2) {
-    return Math.sqrt(Math.pow(catheti1, 2) + Math.pow(catheti2, 2));
+    return runners;
 };
 
 analizer();
